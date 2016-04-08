@@ -14,6 +14,7 @@ use OpiloClient\Response\Inbox;
 use OpiloClient\Response\SMSId;
 use PHPUnit_Framework_TestCase;
 use OpiloClient\Response\Credit;
+use OpiloClient\Response\CommunicationException;
 use OpiloClient\V2\HttpClient;
 
 class HttpClientTest extends PHPUnit_Framework_TestCase {
@@ -33,7 +34,7 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         return $client;
     }
 
-    public function testSendSMS() {
+    public function testSendSMSWithCorrectResponse() {
         // Mock a Guzzle client to be used
         $responseArray = [
             'messages' => [
@@ -62,7 +63,28 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(12345, $smsId->getId());
     }
 
-    public function testCheckInbox() {
+    /**
+     * @expectedException OpiloClient\Response\CommunicationException
+     */
+    public function testSendSMSWithError() {
+        // Mock a Guzzle client to be used
+        $responseArray = [
+            'error' => 2
+        ];
+        $responses = [
+            new Response(401, [], json_encode($responseArray))
+        ];
+        $client = $this->mockGuzzleClient($responses);
+
+        // Make HttpClient to use mocked Guzzle client
+        $httpClient = new HttpClient('no-need-for-username', 'no-need-for-password', $client);
+
+        // Send sms
+        $message = new OutgoingSMS('9121231234', '9123214321', 'hey');
+        $result = $httpClient->sendSMS($message);
+    }
+
+    public function testCheckInboxWithCorrectResponse() {
         // Mock a Guzzle client to be used
         $responseArray = [
             'messages' => [
@@ -114,7 +136,27 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('2012-05-25 02:10:27', $second->getReceivedAt()->format('Y-m-d H:i:s'));
     }
 
-    public function testGetCredit() {
+    /**
+     * @expectedException OpiloClient\Response\CommunicationException
+     */
+     public function testCheckInboxWithError() {
+        // Mock a Guzzle client to be used
+        $responseArray = [
+            'error' => 2
+        ];
+        $responses = [
+            new Response(401, [], json_encode($responseArray))
+        ];
+        $client = $this->mockGuzzleClient($responses);
+
+        // Make HttpClient to use mocked Guzzle client
+        $httpClient = new HttpClient('no-need-for-username', 'no-need-for-password', $client);
+
+        // Call checkInbox
+        $result = $httpClient->checkInbox();
+    }
+
+    public function testGetCreditWithCorrectResponse() {
         // Mock a Guzzle client to be used
         $responseArray = [
             'sms_page_count' => 33
@@ -133,5 +175,25 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         // Inspect $result
         $this->assertInstanceOf(Credit::class, $result);
         $this->assertEquals(33, $result->getSmsPageCount());
+    }
+
+    /**
+     * @expectedException OpiloClient\Response\CommunicationException
+     */
+    public function testGetCreditWithError() {
+        // Mock a Guzzle client to be used
+        $responseArray = [
+            'error' => 8
+        ];
+        $responses = [
+            new Response(401, [], json_encode($responseArray))
+        ];
+        $client = $this->mockGuzzleClient($responses);
+
+        // Make HttpClient to use mocked Guzzle client
+        $httpClient = new HttpClient('no-need-for-username', 'no-need-for-password', $client);
+
+        // Call getCredit
+        $result = $httpClient->getCredit();
     }
 }
