@@ -13,13 +13,26 @@ use OpiloClient\Request\OutgoingSMS;
 use OpiloClient\Response\Inbox;
 use OpiloClient\Response\SMSId;
 use PHPUnit_Framework_TestCase;
+use OpiloClient\Response\Credit;
 use OpiloClient\V2\HttpClient;
 
 class HttpClientTest extends PHPUnit_Framework_TestCase {
 
     /**
-     * Test sendSMS method of HttpClient
+     * Mocks a GuzzleHttp client, to return gives responses.
+     * @param array $responses Responses to be returned, array of GuzzleHttp\Psr7\Response
+     * @return GuzzleHttp\Client Mocked client
      */
+    private function mockGuzzleClient($responses) {
+        $mockedGuzzleClient = new MockHandler($responses);
+        $handler = HandlerStack::create($mockedGuzzleClient);
+        $client = new Client([
+            'handler' => $handler,
+            'base_url' => getenv('OPILO_URL') . '/ws/api/v2/'
+        ]);
+        return $client;
+    }
+
     public function testSendSMS() {
         // Mock a Guzzle client to be used
         $responseArray = [
@@ -29,18 +42,10 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
                 ]
             ]
         ];
-        $mockedGuzzleClient = new MockHandler([
+        $responses = [
             new Response(200, [], json_encode($responseArray))
-        ]);
-        // Also, attach a history middleware to later inspect requests and responses
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mockedGuzzleClient);
-        $stack->push($history);
-        $client = new Client([
-            'handler' => $stack,
-            'base_url' => getenv('OPILO_URL') . '/ws/api/v2/'
-        ]);
+        ];
+        $client = $this->mockGuzzleClient($responses);
 
         // Make HttpClient to use mocked Guzzle client
         $httpClient = new HttpClient('no-need-for-username', 'no-need-for-password', $client);
@@ -55,10 +60,6 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         $smsId = $result[0];
         $this->assertInstanceOf(SMSId::class, $smsId);
         $this->assertEquals(12345, $smsId->getId());
-
-        // Inspect request
-        $this->assertArrayHasKey(0, $container);
-        $this->assertArrayHasKey('request', $container[0]);
     }
 
     public function testCheckInbox() {
@@ -79,18 +80,10 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
                 ],
             ]
         ];
-        $mockedGuzzleClient = new MockHandler([
+        $responses = [
             new Response(200, [], json_encode($responseArray))
-        ]);
-        // Also, attach a history middleware to later inspect requests and responses
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mockedGuzzleClient);
-        $stack->push($history);
-        $client = new Client([
-            'handler' => $stack,
-            'base_url' => getenv('OPILO_URL') . '/ws/api/v2/'
-        ]);
+        ];
+        $client = $this->mockGuzzleClient($responses);
 
         // Make HttpClient to use mocked Guzzle client
         $httpClient = new HttpClient('no-need-for-username', 'no-need-for-password', $client);
@@ -119,5 +112,26 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('Hello mate', $second->getText());
         $this->assertInstanceOf(DateTime::class, $second->getReceivedAt());
         $this->assertEquals('2012-05-25 02:10:27', $second->getReceivedAt()->format('Y-m-d H:i:s'));
+    }
+
+    public function testGetCredit() {
+        // Mock a Guzzle client to be used
+        $responseArray = [
+            'sms_page_count' => 33
+        ];
+        $responses = [
+            new Response(200, [], json_encode($responseArray))
+        ];
+        $client = $this->mockGuzzleClient($responses);
+
+        // Make HttpClient to use mocked Guzzle client
+        $httpClient = new HttpClient('no-need-for-username', 'no-need-for-password', $client);
+
+        // Call getCredit
+        $result = $httpClient->getCredit();
+
+        // Inspect $result
+        $this->assertInstanceOf(Credit::class, $result);
+        $this->assertEquals(33, $result->getSmsPageCount());
     }
 }
