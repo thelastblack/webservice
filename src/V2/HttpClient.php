@@ -21,6 +21,9 @@ use OpiloClient\V2\Bin\Parser;
 
 class HttpClient
 {
+    const VERSION_1 = '1';
+    const VERSION_2 = '2';
+
     /**
      * @var Account
      */
@@ -31,14 +34,65 @@ class HttpClient
      */
     protected $client;
 
+    /**
+     * @var string
+     */
+    protected $serverBaseUrl = 'https://bpanel.opilo.com';
+
+    /**
+     * @var string
+     */
     private $clientVersion;
 
-    public function __construct(ConnectionConfig $config, Account $account)
+    /**
+     * @param string $username
+     * @param string $password
+     */
+    public function __construct($username, $password, $client = null)
     {
-        $this->account = $account;
-        $this->client = $config->getHttpClient(ConnectionConfig::VERSION_2);
-        $version = ClientInterface::VERSION;
-        $this->clientVersion = $version[0];
+        $this->account = new Account($username, $password);
+        $this->clientVersion = ClientInterface::VERSION[0];
+        if (is_null($client)) {
+            $this->client = $this->getHttpClient();
+        } else {
+            $this->client = $client;
+        }
+    }
+
+    /**
+     * @param $apiVersion
+     * @return \GuzzleHttp\Client
+     */
+    protected function getHttpClient($apiVersion = self::VERSION_2)
+    {
+        // Create Guzzle HTTP client
+        if ($this->clientVersion === '5') {
+            $this->client = new Client([
+                'base_url' => $this->serverBaseUrl . $this->getVersionSegment($apiVersion),
+                'defaults' => ['exceptions' => false],
+            ]);
+        } elseif ($this->clientVersion === '6') {
+            $this->client = new Client([
+                'base_uri'   => $this->serverBaseUrl . $this->getVersionSegment($apiVersion),
+                'exceptions' => false,
+            ]);
+        } else {
+            throw new \RuntimeException('Unknown Guzzle version: ' . $this->clientVersion);
+        }
+    }
+
+    /**
+     * @param $apiVersion
+     *
+     * @return string
+     */
+    protected function getVersionSegment($apiVersion)
+    {
+        if ($apiVersion == self::VERSION_1) {
+            return '/WS/';
+        }
+
+        return ('/ws/api/v' . $apiVersion . '/');
     }
 
     /**
