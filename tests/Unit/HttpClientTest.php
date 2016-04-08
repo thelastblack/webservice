@@ -72,8 +72,8 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
                     'received_at' => '2016-03-15 14:27:30',
                 ],
                 54321 => [
-                    'to' => '9121231234',
                     'from' => '9123214321',
+                    'to' => '9121231234',
                     'text' => 'Hello mate',
                     'received_at' => '2012-05-25 02:10:27',
                 ],
@@ -111,5 +111,13 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('سلام دوست عزیز', $first->getText());
         $this->assertInstanceOf(DateTime::class, $first->getReceivedAt());
         $this->assertEquals('2016-03-15 14:27:30', $first->getReceivedAt()->format('Y-m-d H:i:s'));
+        $second = $messages[1];
+        $this->assertInstanceOf(IncomingSMS::class, $second);
+        $this->assertEquals(54321, $second->getOpiloId());
+        $this->assertEquals('9123214321', $second->getFrom());
+        $this->assertEquals('9121231234', $second->getTo());
+        $this->assertEquals('Hello mate', $second->getText());
+        $this->assertInstanceOf(DateTime::class, $second->getReceivedAt());
+        $this->assertEquals('2012-05-25 02:10:27', $second->getReceivedAt()->format('Y-m-d H:i:s'));
     }
 }
