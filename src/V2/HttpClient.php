@@ -64,7 +64,7 @@ class HttpClient
      * @param mixed $apiVersion
      * @return \GuzzleHttp\Client
      */
-    protected function getHttpClient($apiVersion = self::VERSION_2)
+    protected function getHttpClient($apiVersion = self::VERSION)
     {
         // Create Guzzle HTTP client
         if ($this->clientVersion === '5') {
