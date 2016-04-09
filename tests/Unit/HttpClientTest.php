@@ -2,17 +2,15 @@
 namespace OpiloClientTest\Unit;
 
 use DateTime;
-use GuzzleHttp\Client;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\Response;
-use Mockery\Mock;
-use OpiloClient\Request\IncomingSMS;
-use OpiloClient\Request\OutgoingSMS;
-use OpiloClient\Response\Inbox;
-use OpiloClient\Response\SMSId;
 use PHPUnit_Framework_TestCase;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
+use OpiloClient\Request\OutgoingSMS;
+use OpiloClient\Request\IncomingSMS;
+use OpiloClient\Response\SMSId;
+use OpiloClient\Response\Inbox;
 use OpiloClient\Response\Credit;
 use OpiloClient\Response\CommunicationException;
 use OpiloClient\V2\HttpClient;
@@ -22,7 +20,7 @@ class HttpClientTest extends PHPUnit_Framework_TestCase {
     /**
      * Mocks a GuzzleHttp client, to return gives responses.
      * @param array $responses Responses to be returned, array of GuzzleHttp\Psr7\Response
-     * @return GuzzleHttp\Client Mocked client
+     * @return \GuzzleHttp\Client Mocked client
      */
     private function mockGuzzleClient($responses) {
         $mockedGuzzleClient = new MockHandler($responses);

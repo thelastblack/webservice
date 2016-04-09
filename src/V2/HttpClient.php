@@ -21,8 +21,7 @@ use OpiloClient\V2\Bin\Parser;
 
 class HttpClient
 {
-    const VERSION_1 = '1';
-    const VERSION_2 = '2';
+    const VERSION = '2';
 
     /**
      * @var Account
@@ -47,11 +46,13 @@ class HttpClient
     /**
      * @param string $username
      * @param string $password
+     * @param \GuzzleHttp\Client $client It is not to be used by developers.
      */
     public function __construct($username, $password, $client = null)
     {
         $this->account = new Account($username, $password);
-        $this->clientVersion = ClientInterface::VERSION[0];
+        $version = ClientInterface::VERSION;
+        $this->clientVersion = $version[0];
         if (is_null($client)) {
             $this->client = $this->getHttpClient();
         } else {
@@ -60,7 +61,7 @@ class HttpClient
     }
 
     /**
-     * @param $apiVersion
+     * @param mixed $apiVersion
      * @return \GuzzleHttp\Client
      */
     protected function getHttpClient($apiVersion = self::VERSION_2)
@@ -88,10 +89,6 @@ class HttpClient
      */
     protected function getVersionSegment($apiVersion)
     {
-        if ($apiVersion == self::VERSION_1) {
-            return '/WS/';
-        }
-
         return ('/ws/api/v' . $apiVersion . '/');
     }
 
