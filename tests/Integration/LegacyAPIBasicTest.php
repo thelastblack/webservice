@@ -23,7 +23,7 @@ class LegacyAPIBasicTest extends PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $this->client = new HttpClient(new ConnectionConfig(getenv('OPILO_URL')), new Account(getenv('OPILO_USERNAME'), getenv('OPILO_PASSWORD')));
+        $this->client = new HttpClient(getenv('OPILO_USERNAME'), getenv('OPILO_PASSWORD'), getenv('OPILO_URL'));
     }
 
     public function testGetCredit()

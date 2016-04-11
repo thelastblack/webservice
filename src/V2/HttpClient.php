@@ -21,8 +21,6 @@ use OpiloClient\V2\Bin\Parser;
 
 class HttpClient
 {
-    const VERSION = '2';
-
     /**
      * @var Account
      */
@@ -36,60 +34,28 @@ class HttpClient
     /**
      * @var string
      */
-    protected $serverBaseUrl = 'https://bpanel.opilo.com';
-
-    /**
-     * @var string
-     */
     private $clientVersion;
 
     /**
      * @param string $username
      * @param string $password
-     * @param \GuzzleHttp\Client $client It is not to be used by developers.
+     * @param null|string|\GuzzleHttp\Client $serverBaseUrl Base url of web service
      */
-    public function __construct($username, $password, $client = null)
+    public function __construct($username, $password, $serverBaseUrl=null)
     {
         $this->account = new Account($username, $password);
         $version = ClientInterface::VERSION;
         $this->clientVersion = $version[0];
-        if (is_null($client)) {
-            $this->client = $this->getHttpClient();
+        if ($serverBaseUrl instanceof Client) {
+            $this->client = $serverBaseUrl;
         } else {
-            $this->client = $client;
+            if (is_string($serverBaseUrl)) {
+                $config = new ConnectionConfig($serverBaseUrl);
+            } else {
+                $config = new ConnectionConfig();
+            }
+            $this->client = $config->getHttpClient(ConnectionConfig::VERSION_2);
         }
-    }
-
-    /**
-     * @param mixed $apiVersion
-     * @return \GuzzleHttp\Client
-     */
-    protected function getHttpClient($apiVersion = self::VERSION)
-    {
-        // Create Guzzle HTTP client
-        if ($this->clientVersion === '5') {
-            $this->client = new Client([
-                'base_url' => $this->serverBaseUrl . $this->getVersionSegment($apiVersion),
-                'defaults' => ['exceptions' => false],
-            ]);
-        } elseif ($this->clientVersion === '6') {
-            $this->client = new Client([
-                'base_uri'   => $this->serverBaseUrl . $this->getVersionSegment($apiVersion),
-                'exceptions' => false,
-            ]);
-        } else {
-            throw new \RuntimeException('Unknown Guzzle version: ' . $this->clientVersion);
-        }
-    }
-
-    /**
-     * @param $apiVersion
-     *
-     * @return string
-     */
-    protected function getVersionSegment($apiVersion)
-    {
-        return ('/ws/api/v' . $apiVersion . '/');
     }
 
     /**

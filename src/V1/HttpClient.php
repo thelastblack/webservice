@@ -34,12 +34,26 @@ class HttpClient
 
     private $clientVersion;
 
-    public function __construct(ConnectionConfig $config, Account $account)
+    /**
+     * @param string $username
+     * @param string $password
+     * @param null|string|\GuzzleHttp\Client $serverBaseUrl Base url of web service
+     */
+    public function __construct($username, $password, $serverBaseUrl=null)
     {
-        $this->client = $config->getHttpClient(ConnectionConfig::VERSION_1);
-        $this->account = $account;
+        $this->account = new Account($username, $password);
         $version = ClientInterface::VERSION;
         $this->clientVersion = $version[0];
+        if ($serverBaseUrl instanceof Client) {
+            $this->client = $serverBaseUrl;
+        } else {
+            if (is_string($serverBaseUrl)) {
+                $config = new ConnectionConfig($serverBaseUrl);
+            } else {
+                $config = new ConnectionConfig();
+            }
+            $this->client = $config->getHttpClient(ConnectionConfig::VERSION_1);
+        }
     }
 
     /**

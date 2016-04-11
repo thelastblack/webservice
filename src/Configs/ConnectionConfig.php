@@ -20,7 +20,7 @@ class ConnectionConfig
      *
      * @param string $serverBaseUrl
      */
-    public function __construct($serverBaseUrl)
+    public function __construct($serverBaseUrl='https://bpanel.opilo.com')
     {
         $this->serverBaseUrl = $serverBaseUrl;
     }
